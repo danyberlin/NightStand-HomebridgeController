@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">DGNightStand2020</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="alles_aus">a aus</string>
+    <string name="unten_aus">u aus</string>
+    <string name="oben_aus">o aus</string>
+    <string name="alles_an">a an</string>
+    <string name="unten_an">u an</string>
+    <string name="oben_an">o an</string>
+    <string name="mar">MAR</string>
+    <string name="so">SO</string>
+    <string name="_33">-33</string>
+    <string name="c">*C</string>
+    <string name="colon">:</string>
+</resources>
