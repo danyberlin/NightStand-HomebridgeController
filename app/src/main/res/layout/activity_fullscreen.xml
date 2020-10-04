@@ -98,7 +98,7 @@
             android:layout_height="match_parent">
 
             <LinearLayout
-                android:layout_width="110dp"
+                android:layout_width="105dp"
                 android:layout_height="160dp"
                 android:orientation="vertical">
 
@@ -213,46 +213,36 @@
                     android:layout_weight="1"
                     android:backgroundTint="#2B602B"
                     android:fontFamily="@font/famirids"
-                    android:text="@string/alles_an"
+                    android:text="L"
                     android:textSize="18sp" />
 
-                <Button
-                    android:id="@+id/a_aus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:backgroundTint="#2B602B"
-                    android:fontFamily="@font/famirids"
-                    android:text="@string/alles_aus"
-                    android:textSize="18sp" />
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="wrap_content"
+                android:layout_height="80dp"
+                android:fontFamily="@font/famirids"
+                android:paddingTop="35dp"
+                android:textColor="#2B602B"
+                android:textSize="46sp" />
 
             <Button
                 android:id="@+id/b_an"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:backgroundTint="#2B602B"
                 android:fontFamily="@font/famirids"
-                android:text="B AN"
+                android:text="M"
                 android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/textView"
                 android:layout_width="wrap_content"
-                android:layout_height="80dp"
                 android:fontFamily="@font/famirids"
                 android:textAlignment="center"
                 android:textColor="#588658"
                 android:textSize="40sp" />
-
-            <Button
-                android:id="@+id/b_aus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="#2B602B"
-                android:fontFamily="@font/famirids"
-                android:text="B AUS"
-                android:textSize="18sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -266,18 +256,9 @@
                     android:layout_weight="1"
                     android:backgroundTint="#2B602B"
                     android:fontFamily="@font/famirids"
-                    android:text="C AN"
+                    android:text="R"
                     android:textSize="18sp" />
 
-                <Button
-                    android:id="@+id/c_aus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:backgroundTint="#2B602B"
-                    android:fontFamily="@font/famirids"
-                    android:text="C AUS"
-                    android:textSize="18sp" />
             </LinearLayout>
 
         </TableRow>

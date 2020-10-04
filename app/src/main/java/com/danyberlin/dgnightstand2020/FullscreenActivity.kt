@@ -51,11 +51,8 @@ class FullscreenActivity : AppCompatActivity() {
     private lateinit var weatherView: TextView
 
     private lateinit var aAn : Button
-    private lateinit var aAus : Button
     private lateinit var bAn : Button
-    private lateinit var bAus : Button
     private lateinit var cAn : Button
-    private lateinit var cAus : Button
 
     @SuppressLint("InlinedApi")
     private val hidePart2Runnable = Runnable {
@@ -132,30 +129,18 @@ class FullscreenActivity : AppCompatActivity() {
         weatherView = findViewById(R.id.weather)
 
         aAn = findViewById(R.id.a_an)
-        aAus = findViewById(R.id.a_aus)
         bAn = findViewById(R.id.b_an)
-        bAus = findViewById(R.id.b_aus)
         cAn = findViewById(R.id.c_an)
-        cAus = findViewById(R.id.c_aus)
 
 
         aAn.setOnClickListener {
-            sendCommandToggleOn(lampLeftId, true)
-        }
-        aAus.setOnClickListener {
-            sendCommandToggleOn(lampLeftId, false)
+            sendCommandToggle(lampLeftId)
         }
         bAn.setOnClickListener {
-            sendCommandToggleOn(lampTopId, true)
-        }
-        bAus.setOnClickListener {
-            sendCommandToggleOn(lampTopId, false)
+            sendCommandToggle(lampTopId)
         }
         cAn.setOnClickListener {
-            sendCommandToggleOn(lampRightId, true)
-        }
-        cAus.setOnClickListener {
-            sendCommandToggleOn(lampRightId, false)
+            sendCommandToggle(lampRightId)
         }
 
         CoroutineScope(Main).launch {
@@ -167,19 +152,62 @@ class FullscreenActivity : AppCompatActivity() {
         CoroutineScope(Main).launch {
             authHB()
         }
-//        checkHB()
     }
 
     data class LightData(
         @SerializedName("values") val values: LightValues,
+
     )
     data class LightValues(
         @SerializedName("On") val On: Boolean,
+        @SerializedName("Brightness") val Brightness: Int,
+        @SerializedName("Hue") val Hue: Int,
+        @SerializedName("Saturation") val Saturation: Int
     )
 
     data class AccessToken(
         @SerializedName("access_token") val access_token : String
     )
+
+    private fun sendCommandToggle(lampId:String){
+        val url = "http://10.10.0.2:8581/api/accessories/$lampId"
+        val client = OkHttpClient().newBuilder().build()
+        var hbresponse: String
+        Log.d("HomeBridge/LampTop", "Checking State")
+
+        var gson = Gson()
+        var lightData : LightData
+
+        val request = Request.Builder().url(url)
+            .addHeader("Authorization", "Bearer $authKey")
+            .addHeader("Content-Type", "application/json")
+            .build()
+//            Log.d("HomebridgeLamp/Request", request.toString())
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.d("HomebridgeLamp/Failure", e.toString())
+            }
+
+            @SuppressLint("LongLogTag")
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+//                        for ((name, value) in response.headers) {
+//                            Log.d("HomebridgeLamp/Header", " $name, $value")
+//                        }
+                    lightData = gson.fromJson(response.body!!.string(), LightData::class.java)
+                    Log.d("HomebridgeLamp/Response", "Current State: $lightData")
+                    if (lightData.values.On){
+                        sendCommandToggleOn(lampId, false)
+                    } else {
+                        sendCommandToggleOn(lampId, true)
+                    }
+                }
+            }
+        })
+
+    }
 
     private fun sendCommandToggleOn(lampId : String, On: Boolean){
         val url = "http://10.10.0.2:8581/api/accessories/$lampId"
@@ -187,8 +215,10 @@ class FullscreenActivity : AppCompatActivity() {
         var hbresponse: String
         Log.d("HomeBridge/LampTop", "Sending Command ON:$On")
 
-        fun run() {
-            val requestBody = FormBody.Builder()
+        var gson = Gson()
+        var lightData : LightData
+
+        val requestBody = FormBody.Builder()
                 .add("characteristicType", "On")
                 .add("value", "$On")
                 .build()
@@ -212,13 +242,12 @@ class FullscreenActivity : AppCompatActivity() {
 //                        for ((name, value) in response.headers) {
 //                            Log.d("HomebridgeLamp/Header", " $name, $value")
 //                        }
-                        hbresponse = response.body!!.string()
-                        Log.d("HomebridgeLamp/Response", hbresponse)
+                        lightData = gson.fromJson(response.body!!.string(), LightData::class.java)
+                        Log.d("HomebridgeLamp/Response", "Last State: $lightData")
                     }
                 }
             })
-        }
-        run()
+
     }
 
 private suspend fun authHB(){
@@ -227,7 +256,7 @@ private suspend fun authHB(){
     val gson = Gson()
     var accessToken : AccessToken
     Log.d("HomeBridge", "Starting HB ")
-    fun run() {
+    while (true) {
 
         val requestBody = FormBody.Builder()
             .add("username", "xperia-z3")
@@ -250,14 +279,12 @@ private suspend fun authHB(){
                 Log.d("HomeBridge/Failure", e.toString())
             }
         })
-    }
-    while (true) {
-        run()
-        delay(60000 * 60)
+
+        delay(60000 * 240)
     }
 }
-//    private fun checkHB() {
-//        val url = "http://10.10.0.2:8581/api/accessories/dbd20c6d750b0e199a04a499b236af5d52c1641386e7fa5ff3c7e7457c1c5315"
+//    private fun checkDeviceState(uid: String) {
+//        val url = "http://10.10.0.2:8581/api/accessories/$uid"
 //        val client = OkHttpClient().newBuilder().build()
 //        val gson = Gson()
 //        var lightData: LightData
@@ -372,7 +399,6 @@ private suspend fun authHB(){
         while (true) {
             Log.d("Weather", "Starting Weather loop")
 
-            fun run() {
                 val request = Request.Builder().url(url).build()
                 client.newCall(request).enqueue(object : Callback {
                     override fun onFailure(call: Call, e: IOException) {
@@ -391,8 +417,6 @@ private suspend fun authHB(){
                         }
                     }
                 })
-            }
-            run()
             delay(60000 * 10 )
         }
     }
