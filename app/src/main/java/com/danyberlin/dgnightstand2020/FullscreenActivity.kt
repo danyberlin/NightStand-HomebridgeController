@@ -22,6 +22,7 @@ import okhttp3.*
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.Map
 import kotlin.math.roundToInt
 
 /**
@@ -31,11 +32,12 @@ import kotlin.math.roundToInt
 @Suppress("DEPRECATION")
 class FullscreenActivity : AppCompatActivity() {
     private val lampTopId = "dbd20c6d750b0e199a04a499b236af5d52c1641386e7fa5ff3c7e7457c1c5315"
-    private val lampRightId = "034c7a55d9579a99578bc9424dcd1612d975f7565446b3f1ccd9d34fa0df17f7"
+    private val lampBottomId = "034c7a55d9579a99578bc9424dcd1612d975f7565446b3f1ccd9d34fa0df17f7"
     private val lampLeftId = "e126b1a96b05048bf442373053af61646963f45601b7e16342e4e474d2b2f524"
+    private val lampRightId = "ecde513a9f0186b2b4774e52d23dfa4346d89a95e01d49c2e736a54316a7dadd"
 
-
-    private var authKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InhwZXJpYS16MyIsIm5hbWUiOiJTb255IFhwZXJpYSBaMyIsImFkbWluIjpmYWxzZSwiaW5zdGFuY2VJZCI6IjYyN2NkMDkyYmEyMjgxY2VlMTBkNzU0YWY2YmEwNDY5MzNlOWNkOTA2NzFmNTZhYTk4MjZmOTJmZjkxMjRlNTIiLCJpYXQiOjE2MDE2ODQwMzQsImV4cCI6MTYwMTcxMjgzNH0.MLl7etyO2MsxcgMBAHkt60ZDJf0jH65mZRp1MNEutvQ"
+    private var authKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InhwZXJpYS16MyIsIm5hbWUiOiJTb255IFhwZXJpYSBaMyIsImFkbWluIjpmYWxzZSwiaW5zdGFuY2VJZCI6IjYyN2NkMDkyYmEyMjgxY2VlMTBkNzU0YWY2YmEwNDY5MzNlOWNkOTA2NzFmNTZhYTk4MjZmOTJmZjkxMjRlNTIiLCJpYXQiOjE2MDE2ODQwMzQsImV4cCI6MTYwMTcxMjgzNH0.MLl7etyO2MsxcgMBAHkt60ZDJf0jH65mZRp1MNEutvQ"
     private lateinit var fullscreenContent: TextView
     private lateinit var fullscreenContentControls: LinearLayout
     private val hideHandler = Handler()
@@ -49,10 +51,13 @@ class FullscreenActivity : AppCompatActivity() {
     private lateinit var monthView: TextView
     private lateinit var colonView: TextView
     private lateinit var weatherView: TextView
+    private lateinit var textView: TextView
 
-    private lateinit var aAn : Button
-    private lateinit var bAn : Button
-    private lateinit var cAn : Button
+
+    private lateinit var aAn: Button
+    private lateinit var bAn: Button
+    private lateinit var cAn: Button
+    private lateinit var dAn: Button
 
     @SuppressLint("InlinedApi")
     private val hidePart2Runnable = Runnable {
@@ -96,7 +101,7 @@ class FullscreenActivity : AppCompatActivity() {
         false
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -131,7 +136,17 @@ class FullscreenActivity : AppCompatActivity() {
         aAn = findViewById(R.id.a_an)
         bAn = findViewById(R.id.b_an)
         cAn = findViewById(R.id.c_an)
+        dAn = findViewById(R.id.d_an)
 
+        aAn.text = "Left"
+        bAn.text = "Top"
+        cAn.text = "Back"
+        dAn.text = "Right"
+
+
+        textView = findViewById(R.id.textView)
+
+        textView.text = ""
 
         aAn.setOnClickListener {
             sendCommandToggle(lampLeftId)
@@ -140,9 +155,27 @@ class FullscreenActivity : AppCompatActivity() {
             sendCommandToggle(lampTopId)
         }
         cAn.setOnClickListener {
+            sendCommandToggle(lampBottomId)
+        }
+        dAn.setOnClickListener {
             sendCommandToggle(lampRightId)
         }
 
+        aAn.setOnLongClickListener {
+            sendCommandToggleOn(lampRightId, true)
+            sendCommandToggleOn(lampBottomId, true)
+            sendCommandToggleOn(lampTopId, true)
+            sendCommandToggleOn(lampLeftId, true)
+            true
+        }
+
+        dAn.setOnLongClickListener {
+            sendCommandToggleOn(lampRightId, false)
+            sendCommandToggleOn(lampBottomId, false)
+            sendCommandToggleOn(lampTopId, false)
+            sendCommandToggleOn(lampLeftId, false)
+            true
+        }
         CoroutineScope(Main).launch {
             getTime()
         }
@@ -152,12 +185,49 @@ class FullscreenActivity : AppCompatActivity() {
         CoroutineScope(Main).launch {
             authHB()
         }
+        CoroutineScope(Main).launch {
+            checkMessages()
+        }
     }
+
+    var messageMap = mutableMapOf<String, Int>("Hallo Welt!" to 1)
+
+
+
+    private suspend fun checkMessages() {
+        while (true) {
+            var toRemove = ""
+            for (i in messageMap) {
+                Log.d("TESTTESTTESET", "Key: ${i.key} Value: ${i.value}")
+                if (i.value == 0) toRemove = i.key
+                else {
+                    withContext(Main) {
+                        Log.d("TESTTESTTESET", "Setting Key: ${i.key}")
+                        textView.text = i.key
+                    }
+                }
+                messageMap.set(i.key, i.value - 1)
+            }
+            if (!toRemove.isEmpty()) {
+                Log.d("TESTTESTTESET", "Removing: $toRemove")
+                messageMap.remove(toRemove)
+                toRemove = ""
+            }
+            if (messageMap.isEmpty()) {
+                withContext(Main) {
+                    textView.text = ""
+                }
+            }
+            delay(500)
+        }
+    }
+
 
     data class LightData(
         @SerializedName("values") val values: LightValues,
 
-    )
+        )
+
     data class LightValues(
         @SerializedName("On") val On: Boolean,
         @SerializedName("Brightness") val Brightness: Int,
@@ -166,17 +236,17 @@ class FullscreenActivity : AppCompatActivity() {
     )
 
     data class AccessToken(
-        @SerializedName("access_token") val access_token : String
+        @SerializedName("access_token") val access_token: String
     )
 
-    private fun sendCommandToggle(lampId:String){
+    private fun sendCommandToggle(lampId: String) {
         val url = "http://10.10.0.2:8581/api/accessories/$lampId"
         val client = OkHttpClient().newBuilder().build()
         var hbresponse: String
         Log.d("HomeBridge/LampTop", "Checking State")
 
         var gson = Gson()
-        var lightData : LightData
+        var lightData: LightData
 
         val request = Request.Builder().url(url)
             .addHeader("Authorization", "Bearer $authKey")
@@ -198,10 +268,12 @@ class FullscreenActivity : AppCompatActivity() {
 //                        }
                     lightData = gson.fromJson(response.body!!.string(), LightData::class.java)
                     Log.d("HomebridgeLamp/Response", "Current State: $lightData")
-                    if (lightData.values.On){
+                    if (lightData.values.On) {
                         sendCommandToggleOn(lampId, false)
+                        messageMap.put("TURNING OFF", 4)
                     } else {
                         sendCommandToggleOn(lampId, true)
+                        messageMap.put("TURNING ON", 4)
                     }
                 }
             }
@@ -209,80 +281,81 @@ class FullscreenActivity : AppCompatActivity() {
 
     }
 
-    private fun sendCommandToggleOn(lampId : String, On: Boolean){
+    private fun sendCommandToggleOn(lampId: String, On: Boolean) {
         val url = "http://10.10.0.2:8581/api/accessories/$lampId"
         val client = OkHttpClient().newBuilder().build()
         var hbresponse: String
         Log.d("HomeBridge/LampTop", "Sending Command ON:$On")
 
         var gson = Gson()
-        var lightData : LightData
+        var lightData: LightData
 
         val requestBody = FormBody.Builder()
-                .add("characteristicType", "On")
-                .add("value", "$On")
-                .build()
+            .add("characteristicType", "On")
+            .add("value", "$On")
+            .build()
 
-            val request = Request.Builder().url(url)
-                .addHeader("Authorization", "Bearer $authKey")
-                .addHeader("Content-Type", "application/json")
-                .put(requestBody)
-                .build()
+        val request = Request.Builder().url(url)
+            .addHeader("Authorization", "Bearer $authKey")
+            .addHeader("Content-Type", "application/json")
+            .put(requestBody)
+            .build()
 //            Log.d("HomebridgeLamp/Request", request.toString())
 
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.d("HomebridgeLamp/Failure", e.toString())
-                }
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.d("HomebridgeLamp/Failure", e.toString())
+            }
 
-                @SuppressLint("LongLogTag")
-                override fun onResponse(call: Call, response: Response) {
-                    response.use {
-                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            @SuppressLint("LongLogTag")
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
 //                        for ((name, value) in response.headers) {
 //                            Log.d("HomebridgeLamp/Header", " $name, $value")
 //                        }
-                        lightData = gson.fromJson(response.body!!.string(), LightData::class.java)
-                        Log.d("HomebridgeLamp/Response", "Last State: $lightData")
-                    }
-                }
-            })
+                    lightData = gson.fromJson(response.body!!.string(), LightData::class.java)
+                    Log.d("HomebridgeLamp/Response", "Last State: $lightData")
 
-    }
-
-private suspend fun authHB(){
-    val urlAuth = "http://10.10.0.2:8581/api/auth/login"
-    val client = OkHttpClient().newBuilder().build()
-    val gson = Gson()
-    var accessToken : AccessToken
-    Log.d("HomeBridge", "Starting HB ")
-    while (true) {
-
-        val requestBody = FormBody.Builder()
-            .add("username", "xperia-z3")
-            .add("password", "fthg72")
-            .build()
-
-        val request = Request.Builder().url(urlAuth)
-            .addHeader("Content-Type", "application/json")
-            .post(requestBody)
-            .build()
-        Log.d("Homebridge/RequestTxt", request.toString())
-        client.newCall(request).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-                accessToken = gson.fromJson(response.body!!.string(), AccessToken::class.java)
-                Log.d("HomeBridge/Response", "New Access Token: ${accessToken.access_token}")
-                authKey = accessToken.access_token
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                Log.d("HomeBridge/Failure", e.toString())
+                 }
             }
         })
 
-        delay(60000 * 240)
     }
-}
+
+    private suspend fun authHB() {
+        val urlAuth = "http://10.10.0.2:8581/api/auth/login"
+        val client = OkHttpClient().newBuilder().build()
+        val gson = Gson()
+        var accessToken: AccessToken
+        Log.d("HomeBridge", "Starting HB ")
+        while (true) {
+
+            val requestBody = FormBody.Builder()
+                .add("username", "xperia-z3")
+                .add("password", "fthg72")
+                .build()
+
+            val request = Request.Builder().url(urlAuth)
+                .addHeader("Content-Type", "application/json")
+                .post(requestBody)
+                .build()
+            Log.d("Homebridge/RequestTxt", request.toString())
+            client.newCall(request).enqueue(object : Callback {
+                override fun onResponse(call: Call, response: Response) {
+                    accessToken = gson.fromJson(response.body!!.string(), AccessToken::class.java)
+                    Log.d("HomeBridge/Response", "New Access Token: ${accessToken.access_token}")
+                    authKey = accessToken.access_token
+                }
+
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d("HomeBridge/Failure", e.toString())
+                }
+            })
+
+            delay(60000 * 240)
+        }
+    }
 //    private fun checkDeviceState(uid: String) {
 //        val url = "http://10.10.0.2:8581/api/accessories/$uid"
 //        val client = OkHttpClient().newBuilder().build()
@@ -359,7 +432,8 @@ private suspend fun authHB(){
 
 
     private lateinit var date: Date
-//    private val formatter = SimpleDateFormat("MMM dd yyyy HH:mm:ss E", Locale.GERMANY)
+
+    //    private val formatter = SimpleDateFormat("MMM dd yyyy HH:mm:ss E", Locale.GERMANY)
     private val formatterTime = SimpleDateFormat("HH:mm:ss", Locale.GERMANY)
     private val formatterMonth = SimpleDateFormat("MMM", Locale.GERMANY)
     private val formatterDay = SimpleDateFormat("dd", Locale.GERMANY)
@@ -399,25 +473,27 @@ private suspend fun authHB(){
         while (true) {
             Log.d("Weather", "Starting Weather loop")
 
-                val request = Request.Builder().url(url).build()
-                client.newCall(request).enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        Log.d("Weather", e.toString())
-                    }
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d("Weather", e.toString())
+                }
 
-                    override fun onResponse(call: Call, response: Response) {
-                        response.use {
-                            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                override fun onResponse(call: Call, response: Response) {
+                    response.use {
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
 //                            for ((name, value) in response.headers) {
 //                                Log.d("Weather/Response", " $name, $value")
 //                            }
-                            weatherData = gson.fromJson(response.body!!.string(), WeatherData::class.java)
-                            Log.d("Weather/Response", weatherData.main.temp.toString())
-                            curTemp = (weatherData.main.temp.toString().toDouble() - 273.15).roundToInt()
-                        }
+                        weatherData =
+                            gson.fromJson(response.body!!.string(), WeatherData::class.java)
+                        Log.d("Weather/Response", weatherData.main.temp.toString())
+                        curTemp = (weatherData.main.temp.toString().toDouble() - 273.15).roundToInt()
+                        messageMap.put("Weather updated", 10)
                     }
-                })
-            delay(60000 * 10 )
+                }
+            })
+            delay(60000 * 10)
         }
     }
 
@@ -432,7 +508,6 @@ private suspend fun authHB(){
 
     override fun onResume() {
         super.onResume()
-        Log.d("ON RESUME", "Resuming...?")
         hide()
     }
 
