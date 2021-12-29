@@ -7,9 +7,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
@@ -31,10 +29,9 @@ import kotlin.math.roundToInt
  */
 @Suppress("DEPRECATION")
 class FullscreenActivity : AppCompatActivity() {
-    private val lampTopId = "dbd20c6d750b0e199a04a499b236af5d52c1641386e7fa5ff3c7e7457c1c5315"
-    private val lampBottomId = "034c7a55d9579a99578bc9424dcd1612d975f7565446b3f1ccd9d34fa0df17f7"
-    private val lampLeftId = "e126b1a96b05048bf442373053af61646963f45601b7e16342e4e474d2b2f524"
-    private val lampRightId = "ecde513a9f0186b2b4774e52d23dfa4346d89a95e01d49c2e736a54316a7dadd"
+    private val lampTopId = "784138e96effdd231df94dd5e4eafcd70b3f8aaecd9ae1c1e68270fb6188c7d7"
+    private val lampBottomId = "42e5ff844c93d10b810aae1de1476348f33b6dc38e470ba855306e556e00ae37"
+    private val lampLeftId = "94a4bf9c5dfc579925f2bf1e7db786136784732daf9aa04f35ee2e24349c95e8"
 
     private var authKey =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InhwZXJpYS16MyIsIm5hbWUiOiJTb255IFhwZXJpYSBaMyIsImFkbWluIjpmYWxzZSwiaW5zdGFuY2VJZCI6IjYyN2NkMDkyYmEyMjgxY2VlMTBkNzU0YWY2YmEwNDY5MzNlOWNkOTA2NzFmNTZhYTk4MjZmOTJmZjkxMjRlNTIiLCJpYXQiOjE2MDE2ODQwMzQsImV4cCI6MTYwMTcxMjgzNH0.MLl7etyO2MsxcgMBAHkt60ZDJf0jH65mZRp1MNEutvQ"
@@ -52,12 +49,18 @@ class FullscreenActivity : AppCompatActivity() {
     private lateinit var colonView: TextView
     private lateinit var weatherView: TextView
     private lateinit var textView: TextView
-
+    private lateinit var innenTempView: TextView
 
     private lateinit var aAn: Button
     private lateinit var bAn: Button
     private lateinit var cAn: Button
-    private lateinit var dAn: Button
+    private lateinit var bAuf: Button
+    private lateinit var cAuf: Button
+    private lateinit var bAb: Button
+    private lateinit var cAb: Button
+    // Settings Layer
+    private lateinit var settingsLayer: TableLayout
+    private lateinit var seekBar : SeekBar
 
     @SuppressLint("InlinedApi")
     private val hidePart2Runnable = Runnable {
@@ -132,50 +135,61 @@ class FullscreenActivity : AppCompatActivity() {
         monthView = findViewById(R.id.month)
         colonView = findViewById(R.id.colon)
         weatherView = findViewById(R.id.weather)
+        innenTempView = findViewById(R.id.textView24)
+        innenTempView.text = "00"
 
         aAn = findViewById(R.id.a_an)
         bAn = findViewById(R.id.b_an)
         cAn = findViewById(R.id.c_an)
-        dAn = findViewById(R.id.d_an)
 
-        aAn.text = "Left"
+        aAn.text = "Middle"
         bAn.text = "Top"
         cAn.text = "Back"
-        dAn.text = "Right"
-
 
         textView = findViewById(R.id.textView)
 
         textView.text = ""
 
+
+
+//        bAn.setOnLongClickListener {
+//            toggleSettings()
+//            true
+//        }
         aAn.setOnClickListener {
             sendCommandToggle(lampLeftId)
+        }
+        aAn.setOnLongClickListener {
+            sendCommandToggleOn(lampBottomId, true)
+            sendCommandToggleOn(lampLeftId, true)
+            true
         }
         bAn.setOnClickListener {
             sendCommandToggle(lampTopId)
         }
-        cAn.setOnClickListener {
-            sendCommandToggle(lampBottomId)
-        }
-        dAn.setOnClickListener {
-            sendCommandToggle(lampRightId)
-        }
-
-        aAn.setOnLongClickListener {
-            sendCommandToggleOn(lampRightId, true)
+        bAn.setOnLongClickListener {
             sendCommandToggleOn(lampBottomId, true)
             sendCommandToggleOn(lampTopId, true)
             sendCommandToggleOn(lampLeftId, true)
             true
         }
-
-        dAn.setOnLongClickListener {
-            sendCommandToggleOn(lampRightId, false)
+        cAn.setOnClickListener {
+            sendCommandToggle(lampBottomId)
+        }
+        cAn.setOnLongClickListener {
             sendCommandToggleOn(lampBottomId, false)
             sendCommandToggleOn(lampTopId, false)
             sendCommandToggleOn(lampLeftId, false)
             true
         }
+
+
+        // Settings Layer
+        settingsLayer = findViewById(R.id.settingLayer)
+        settingsLayer.visibility = View.GONE
+
+        seekBar = findViewById(R.id.seekBar)
+
         CoroutineScope(Main).launch {
             getTime()
         }
@@ -188,28 +202,38 @@ class FullscreenActivity : AppCompatActivity() {
         CoroutineScope(Main).launch {
             checkMessages()
         }
+        CoroutineScope(Main).launch {
+            getBedroomTemperature()
+        }
     }
 
     var messageMap = mutableMapOf<String, Int>("Hallo Welt!" to 1)
 
 
+    private fun toggleSettings(){
+        if (settingsLayer.visibility == View.GONE){
+            settingsLayer.visibility = View.VISIBLE
+        }else{
+            settingsLayer.visibility = View.GONE
+        }
+    }
 
     private suspend fun checkMessages() {
         while (true) {
             var toRemove = ""
             for (i in messageMap) {
-                Log.d("TESTTESTTESET", "Key: ${i.key} Value: ${i.value}")
-                if (i.value == 0) toRemove = i.key
+                Log.d("MESSAGEBOARD", "Key: ${i.key} Value: ${i.value}")
+                if (i.value <= 0) toRemove = i.key
                 else {
                     withContext(Main) {
-                        Log.d("TESTTESTTESET", "Setting Key: ${i.key}")
+                        Log.d("MESSAGEBOARD", "Setting Key: ${i.key}")
                         textView.text = i.key
                     }
                 }
                 messageMap.set(i.key, i.value - 1)
             }
             if (!toRemove.isEmpty()) {
-                Log.d("TESTTESTTESET", "Removing: $toRemove")
+                Log.d("MESSAGEBOARD", "Removing: $toRemove")
                 messageMap.remove(toRemove)
                 toRemove = ""
             }
@@ -229,7 +253,7 @@ class FullscreenActivity : AppCompatActivity() {
         )
 
     data class LightValues(
-        @SerializedName("On") val On: Boolean,
+        @SerializedName("On") val On: Int,
         @SerializedName("Brightness") val Brightness: Int,
         @SerializedName("Hue") val Hue: Int,
         @SerializedName("Saturation") val Saturation: Int
@@ -237,6 +261,14 @@ class FullscreenActivity : AppCompatActivity() {
 
     data class AccessToken(
         @SerializedName("access_token") val access_token: String
+    )
+
+    data class SensorData(
+        @SerializedName("state") val state: SensorState
+    )
+    data class SensorState(
+        @SerializedName("temperature") val temperature: Int,
+        @SerializedName("lastupdated") val lastUpdated: String
     )
 
     private fun sendCommandToggle(lampId: String) {
@@ -268,7 +300,7 @@ class FullscreenActivity : AppCompatActivity() {
 //                        }
                     lightData = gson.fromJson(response.body!!.string(), LightData::class.java)
                     Log.d("HomebridgeLamp/Response", "Current State: $lightData")
-                    if (lightData.values.On) {
+                    if (lightData.values.On == 1) {
                         sendCommandToggleOn(lampId, false)
                         messageMap.put("TURNING OFF", 4)
                     } else {
@@ -280,6 +312,40 @@ class FullscreenActivity : AppCompatActivity() {
         })
 
     }
+private var innenTempBedroom : Int = 0
+private suspend fun getBedroomTemperature(){
+    val url =
+        "http://10.10.0.15/api/6DFEDF089A/sensors/2"
+    val client = OkHttpClient()
+    val gson = Gson()
+    var sensorData: SensorData
+    while (true) {
+        Log.d("Innentemperatur: Schlafzimmer", "Starting Sensor bedroom loop")
+
+        val request = Request.Builder().url(url).build()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.d("Sensor", e.toString())
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+//                            for ((name, value) in response.headers) {
+//                                Log.d("Weather/Response", " $name, $value")
+//                            }
+                    sensorData =
+                        gson.fromJson(response.body!!.string(), SensorData::class.java)
+                    Log.d("Sensor/Response", sensorData.state.temperature.toString())
+                    innenTempBedroom = (sensorData.state.temperature.toString().toDouble() / 100).roundToInt()
+                    messageMap.put("Innensensor updated", 10)
+                }
+            }
+        })
+        delay(30000 * 10)
+//        delay(5000)
+    }
+}
 
     private fun sendCommandToggleOn(lampId: String, On: Boolean) {
         val url = "http://10.10.0.2:8581/api/accessories/$lampId"
@@ -416,6 +482,10 @@ class FullscreenActivity : AppCompatActivity() {
         weatherView.text = input.toString()
     }
 
+    private fun setNewInnenTempBedroom(input: Int){
+        innenTempView.text = input.toString()
+    }
+
     private suspend fun setTimeOnMainThread(
         input: String,
         weekday: String,
@@ -426,7 +496,7 @@ class FullscreenActivity : AppCompatActivity() {
             setNewTime(input)
             setNewDate(weekday, day, month)
             setNewWeather(curTemp)
-
+            setNewInnenTempBedroom(innenTempBedroom)
         }
     }
 

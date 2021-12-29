@@ -15,7 +15,7 @@
             android:name=".SettingsActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_settings"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme"/>
         <activity
             android:name=".Settings"
             android:configChanges="orientation|keyboardHidden|screenSize"

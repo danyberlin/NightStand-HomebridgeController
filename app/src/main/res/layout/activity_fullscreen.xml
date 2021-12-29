@@ -13,6 +13,43 @@
          TextureView, etc. -->
 
     <TableLayout
+        android:id="@+id/settingLayer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:baselineAligned="false"
+            android:clickable="false"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:contextClickable="false"
+            android:textAlignment="center"
+            android:translationY="75dp">
+
+            <TextView
+                android:id="@+id/textView11"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="140dp"
+                android:textColor="#FFFFFF"
+                android:textSize="36sp" />
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                style="@android:style/Widget.Material.SeekBar"
+                android:layout_width="340dp"
+                android:layout_height="wrap_content"
+                android:progressTint="#1DED39"
+                android:translationY="10dp" />
+
+        </TableRow>
+
+    </TableLayout>
+
+    <TableLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -51,6 +88,7 @@
                 android:layout_height="80dp"
                 android:fontFamily="@font/famirids"
                 android:paddingTop="35dp"
+                android:textAlignment="textEnd"
                 android:textColor="#2B602B"
                 android:textSize="46sp" />
 
@@ -60,6 +98,7 @@
                 android:layout_height="80dp"
                 android:fontFamily="@font/famirids"
                 android:paddingTop="35dp"
+                android:text="@string/c"
                 android:textColor="#2B602B"
                 android:textSize="46sp" />
 
@@ -207,17 +246,6 @@
             android:layout_height="match_parent">
 
             <Button
-                android:id="@+id/a_an"
-                android:layout_width="match_parent"
-                android:layout_height="95dp"
-                android:layout_weight="1"
-                android:backgroundTint="#572B602B"
-                android:fontFamily="@font/famirids"
-                android:text="@string/l"
-                android:textColor="#359735"
-                android:textSize="18sp" />
-
-            <Button
                 android:id="@+id/b_an"
                 android:layout_width="match_parent"
                 android:layout_height="95dp"
@@ -229,6 +257,17 @@
                 android:textSize="18sp" />
 
             <Button
+                android:id="@+id/a_an"
+                android:layout_width="match_parent"
+                android:layout_height="95dp"
+                android:layout_weight="1"
+                android:backgroundTint="#572B602B"
+                android:fontFamily="@font/famirids"
+                android:text="@string/unten_an"
+                android:textColor="#359735"
+                android:textSize="18sp" />
+
+            <Button
                 android:id="@+id/c_an"
                 android:layout_width="match_parent"
                 android:layout_height="95dp"
@@ -236,17 +275,6 @@
                 android:backgroundTint="#572B602B"
                 android:fontFamily="@font/famirids"
                 android:text="@string/u"
-                android:textColor="#359735"
-                android:textSize="18sp" />
-
-            <Button
-                android:id="@+id/d_an"
-                android:layout_width="match_parent"
-                android:layout_height="95dp"
-                android:layout_weight="1"
-                android:backgroundTint="#572B602B"
-                android:fontFamily="@font/famirids"
-                android:text="@string/r"
                 android:textColor="#359735"
                 android:textSize="18sp" />
 
